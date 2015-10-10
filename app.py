@@ -2,16 +2,14 @@ import json
 
 from flask import Flask, render_template
 import requests
+from secrets import token
 
 app = Flask(__name__)
 
-new_last_id = 0
-
 
 def get_new_pushes(last_id):
-    global new_last_id
     to_return = []
-    all_events = json.loads(requests.get('https://api.github.com/events').content)
+    all_events = json.loads(requests.get('https://api.github.com/events?access_token='+token).content)
     new_last_id = all_events[0]['id']
     for event in all_events:
         if int(event['id']) <= last_id:
@@ -42,8 +40,7 @@ def get_messages(commits):
 
 @app.route('/')
 def root():
-    global new_last_id
-    full_list = get_messages(get_commits(get_new_pushes(new_last_id)))
+    full_list = get_messages(get_commits(get_new_pushes(0)))
     return render_template("index.html", list=full_list)
 
 
