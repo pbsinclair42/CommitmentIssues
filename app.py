@@ -1,13 +1,14 @@
 import json
 import requests
+import re
 import threading
 import tweepy as tweepy
 from secrets import github_token, twitter_keys
 
-
+profanity = [' arse ', 'bastard', 'bitch', 'bloody', 'bollocks', ' cock', 'cunt', 'damn', 'dick', 'fuck', 'naff', 'piss', 'shit', 'tits', 'tosser', 'twat', 'wank', 'whore', 'wtf']
 new_last_id = int(0)
-all_commits = []
-keep_filling = True
+
+keep_going = True
 
 
 def get_new_pushes(last_id):
@@ -42,17 +43,17 @@ def get_messages(commits):
     return to_return
 
 
-def add_messages(list_so_far):
+def add_messages():
     global new_last_id
-    full_list = get_messages(get_commits(get_new_pushes(new_last_id))) + list_so_far
+    full_list = get_messages(get_commits(get_new_pushes(new_last_id)))
     return full_list
 
 
-def fill_list():
-    global all_commits, keep_filling
-    all_commits = add_messages(all_commits)
-    if keep_filling:
-        threading.Timer(1, fill_list).start()
+def tweet_new_messages():
+    messages = add_messages()
+    for message in messages:
+        if re.match(r".*(" + '|'.join(profanity) + ").*", message, re.IGNORECASE):
+            tweet(message)
 
 
 def tweet(message):
@@ -69,4 +70,11 @@ def tweet(message):
 
     auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
     api = tweepy.API(auth)
-    api.update_status(status = message + " #LocalHackDay")
+    api.update_status(status=message)
+
+
+def keep_tweeting():
+    tweet_new_messages()
+    # TODO: maybe put in the ability to stop it tweeting
+    if keep_going:
+        threading.Timer(1, keep_tweeting).start()
