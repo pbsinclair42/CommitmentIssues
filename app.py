@@ -1,12 +1,9 @@
 import json
-
-from flask import Flask, render_template
 import requests
 import threading
 import tweepy as tweepy
 from secrets import github_token, twitter_keys
 
-app = Flask(__name__)
 
 new_last_id = int(0)
 all_commits = []
@@ -45,12 +42,6 @@ def get_messages(commits):
     return to_return
 
 
-@app.route('/')
-def root():
-    global all_commits
-    return render_template("index.html", list=all_commits)
-
-
 def add_messages(list_so_far):
     global new_last_id
     full_list = get_messages(get_commits(get_new_pushes(new_last_id))) + list_so_far
@@ -79,8 +70,3 @@ def tweet(message):
     auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
     api = tweepy.API(auth)
     api.update_status(status = message + " #LocalHackDay")
-
-fill_list()
-
-if __name__ == '__main__':
-    app.run(debug=True)
