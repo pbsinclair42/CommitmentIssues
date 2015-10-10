@@ -3,7 +3,8 @@ import json
 from flask import Flask, render_template
 import requests
 import threading
-from secrets import token
+import tweepy as tweepy
+from secrets import github_token, twitter_keys
 
 app = Flask(__name__)
 
@@ -15,7 +16,7 @@ keep_filling = True
 def get_new_pushes(last_id):
     global new_last_id
     to_return = []
-    all_events = json.loads(requests.get('https://api.github.com/events?access_token=' + token).content)
+    all_events = json.loads(requests.get('https://api.github.com/events?access_token=' + github_token).content)
     new_last_id = all_events[0]['id']
     for event in all_events:
         if int(event['id']) <= int(last_id):
@@ -62,6 +63,22 @@ def fill_list():
     if keep_filling:
         threading.Timer(1, fill_list).start()
 
+
+def tweet(message):
+    CONSUMER_KEY = twitter_keys['consumer_key']
+    CONSUMER_SECRET = twitter_keys['consumer_secret']
+    ACCESS_TOKEN = twitter_keys['access_token']
+    ACCESS_TOKEN_SECRET = twitter_keys['access_token_secret']
+
+    auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+    try:
+        redirect_url = auth.get_authorization_url()
+    except tweepy.TweepError:
+        print('Error! Failed to get request token.')
+
+    auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+    api = tweepy.API(auth)
+    api.update_status(status = message + " #LocalHackDay")
 
 fill_list()
 
