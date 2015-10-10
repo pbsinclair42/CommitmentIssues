@@ -2,17 +2,23 @@ import json
 
 from flask import Flask, render_template
 import requests
+import threading
 from secrets import token
 
 app = Flask(__name__)
 
+new_last_id = int(0)
+all_commits = []
+keep_filling = True
+
 
 def get_new_pushes(last_id):
+    global new_last_id
     to_return = []
-    all_events = json.loads(requests.get('https://api.github.com/events?access_token='+token).content)
+    all_events = json.loads(requests.get('https://api.github.com/events?access_token=' + token).content)
     new_last_id = all_events[0]['id']
     for event in all_events:
-        if int(event['id']) <= last_id:
+        if int(event['id']) <= int(last_id):
             return to_return
         if event['type'] == 'PushEvent':
             to_return.append(event)
@@ -40,9 +46,24 @@ def get_messages(commits):
 
 @app.route('/')
 def root():
-    full_list = get_messages(get_commits(get_new_pushes(0)))
-    return render_template("index.html", list=full_list)
+    global all_commits
+    return render_template("index.html", list=all_commits)
 
+
+def add_messages(list_so_far):
+    global new_last_id
+    full_list = get_messages(get_commits(get_new_pushes(new_last_id))) + list_so_far
+    return full_list
+
+
+def fill_list():
+    global all_commits, keep_filling
+    all_commits = add_messages(all_commits)
+    if keep_filling:
+        threading.Timer(1, fill_list).start()
+
+
+fill_list()
 
 if __name__ == '__main__':
     app.run(debug=True)
