@@ -3,9 +3,10 @@ import requests
 import re
 import threading
 import tweepy as tweepy
+from time import sleep
 from secrets import github_token, twitter_keys
 
-profanity = ['\barse\b', 'bastard', 'bitch', 'bloody', 'bollocks', '\bcock', '\bcunt\b', '\bdamn\b', '\bdick\b', 'fuck', '\bnaff\b', '\bpiss', 'shit', '\btits\b', '\btosser\b', '\btwat', '\bwank', '\bwhore', '\bwtf\b']
+profanity = ['\barse\b', 'bastard', 'bitch\b', 'bloody', 'bollocks', '\bcock', '\bcunt\b', '\bdamn\b', '\bdick\b', 'fml', 'fuck', '\bnaff\b', '\bpiss', 'shit', '\btits\b', '\btosser\b', '\btwat', '\bwank', '\bwhore', '\bwtf\b']
 new_last_id = int(0)
 
 keep_going = True
@@ -14,13 +15,16 @@ keep_going = True
 def get_new_pushes(last_id):
     global new_last_id
     to_return = []
-    all_events = json.loads(requests.get('https://api.github.com/events?access_token=' + github_token).content)
-    new_last_id = all_events[0]['id']
-    for event in all_events:
-        if int(event['id']) <= int(last_id):
-            return to_return
-        if event['type'] == 'PushEvent':
-            to_return.append(event)
+    try:
+        all_events = json.loads(requests.get('https://api.github.com/events?access_token=' + github_token).content)
+        for event in all_events:
+            if int(event['id']) <= int(last_id):
+                return to_return
+            if event['type'] == 'PushEvent':
+                to_return.append(event)
+    # if kicked by GitHub, wait a bit so we're not DOSing them
+    except ConnectionError:
+        sleep(30)
     return to_return
 
 
@@ -70,7 +74,11 @@ def tweet(message):
 
     auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
     api = tweepy.API(auth)
-    api.update_status(status=message)
+    try:
+        api.update_status(status=message)
+    except tweepy.TweepError:
+        # if the same commit message is used twice in a row, only send it once
+        pass
 
 
 def keep_tweeting():
@@ -78,3 +86,5 @@ def keep_tweeting():
     # TODO: maybe put in the ability to stop it tweeting
     if keep_going:
         threading.Timer(1, keep_tweeting).start()
+
+keep_tweeting()
