@@ -5,7 +5,7 @@ import threading
 import tweepy as tweepy
 from secrets import github_token, twitter_keys
 
-profanity = ['\barse\b', 'bastard', 'bitch', 'bloody', 'bollocks', '\bcock', '\bcunt\b', '\bdamn\b', '\bdick\b', 'fuck', '\bnaff\b', '\bpiss', 'shit', '\btits\b', '\btosser\b', '\btwat', '\bwank', '\bwhore', '\bwtf\b']
+profanity = ['\barse\b', 'bastard', 'bitch\b', 'bloody', 'bollocks', '\bcock', '\bcunt\b', '\bdamn\b', '\bdick\b', 'fuck', '\bnaff\b', '\bpiss', 'shit', '\btits\b', '\btosser\b', '\btwat', '\bwank', '\bwhore', '\bwtf\b']
 new_last_id = int(0)
 
 keep_going = True
