@@ -6,6 +6,7 @@ import tweepy as tweepy
 from time import sleep
 from secrets import github_token, twitter_keys
 
+
 profanity = ['\barse\b', 'bastard', 'bitch\b', 'bloody', 'bollocks', '\bcock', '\bcunt\b', '\bdamn\b', '\bdick\b', 'fml', 'fuck', '\bnaff\b', '\bpiss', 'shit', '\btits\b', '\btosser\b', '\btwat', '\bwank', '\bwhore', '\bwtf\b']
 new_last_id = int(0)
 
