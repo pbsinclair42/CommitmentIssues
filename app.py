@@ -55,10 +55,14 @@ def add_messages():
 
 
 def tweet_new_messages():
+    # get all the messags since we last checked
     messages = add_messages()
     for message in messages:
+        # If there is profanity in this commit message
         if re.match(r".*(" + '|'.join(profanity) + ").*", message, re.IGNORECASE):
-            tweet(message)
+            # If this isn't a merge, as a number of users/repos get matched by the profanity checker which is a bit boring
+            if !re.match(r"^Merge'", message, re.IGNORECASE):
+                tweet(message)
 
 
 def tweet(message):
