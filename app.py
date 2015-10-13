@@ -24,7 +24,7 @@ def get_new_pushes(last_id):
             if event['type'] == 'PushEvent':
                 to_return.append(event)
     # if kicked by GitHub, wait a bit so we're not DOSing them
-    except ConnectionError:
+    except requests.ConnectionError:
         sleep(30)
     return to_return
 
