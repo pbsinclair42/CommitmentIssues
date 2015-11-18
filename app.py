@@ -7,7 +7,13 @@ from time import sleep
 from secrets import github_token, twitter_keys
 
 
-profanity = ['\barse\b', 'bastard', 'bitch\b', 'bloody', 'bollocks', '\bcock', '\bcunt\b', '\bdamn\b', '\bdick\b', '\bfml\b', 'fuck', '\bnaff\b', '\bpiss', '\bpoo\b', 'shit', '\btits\b', '\btosser\b', '\btwat', '\bwank', '\bwhore', '\bwtf\b']
+profanity = ['\barse\b', 'bastard', 'bitch', 'bloody', 
+             'bollocks', '\bcock', '\bcunt\b', '\bdamn\b', 
+             '\bdick\b', '\bfml\b', 'fuck', '\bnaff\b', 
+             '\bpiss', '\bpoo\b', 'shit', '\btits\b', 
+             '\btosser\b', '\btwat', '\bwank', '\bwhore', 
+             '\bwtf\b', '\btifu\b']
+
 new_last_id = int(0)
 
 keep_going = True
@@ -17,13 +23,16 @@ def get_new_pushes(last_id):
     global new_last_id
     to_return = []
     try:
-        all_events = json.loads(requests.get('https://api.github.com/events?access_token=' + github_token).content)
+        all_events = json.loads(requests.get(
+            'https://api.github.com/events?access_token=' 
+            + github_token).content)
+        
         for event in all_events:
             if int(event['id']) <= int(last_id):
                 return to_return
             if event['type'] == 'PushEvent':
                 to_return.append(event)
-    # if kicked by GitHub, wait a bit so we're not DOSing them
+    # if kicked by GitHub, wait a bit so we're not causing them a spot of bother
     except requests.ConnectionError:
         sleep(30)
     return to_return
@@ -60,9 +69,10 @@ def tweet_new_messages():
     for message in messages:
         # If there is profanity in this commit message
         if re.match(r".*(" + '|'.join(profanity) + ").*", message, re.IGNORECASE):
-            # If this isn't a merge, as a number of users/repos get matched by the profanity checker which is a bit boring
+            # If this isn't a merge, as a number of users/repos 
+            # get matched by the profanity checker which is a bit boring
             if not re.match(r"^Merge", message, re.IGNORECASE):
-                tweet(message)
+                tweet(re.sub("@","",message)) # Remove handles to prevent abuse
 
 
 def tweet(message):
